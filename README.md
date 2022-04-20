@@ -1,5 +1,5 @@
 # Cosmetics-Recommendation
-CMPE 255 - Term project
+# CMPE 255 - Term project
 
 
 We are using the data that we got by web scraping and the data from OpenML. The link for the data set in openML is https://www.openml.org/search?type=data&status=active&id=43481&sort=runs
