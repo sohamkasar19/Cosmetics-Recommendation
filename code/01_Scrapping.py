@@ -1,110 +1,53 @@
-import pandas as pd
-import time
-
 from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.common.exceptions import NoSuchElementException
+from selectorlib import Extractor
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
+import requests
+import json
+import time
+import pandas as pd
+import re
 
+def search_item_url(tickers):
+    driver = webdriver.Chrome(ChromeDriverManager().install())
 
-chrome_path = "C:\\Users\Checkout\Downloads\chromedriver.exe"
+    df = pd.DataFrame(columns=['Label','Name', 'URL'])
+    for ticker in tickers:
+        page = 1
+        while True:
+            try:
+                url = 'https://www.sephora.com/shop/' + ticker + '?pageSize=100&currentPage=' + str(page)
+                driver.get(url)
+                body = driver.find_element_by_css_selector('body')
+                containers = driver.find_elements_by_class_name('css-1qe8tjm')
+                if not containers:
+                    break
+                i=0
+                for items in containers:
+#                     print(items.text.split('\n')[1])
+                    name = items.text.split('\n')[1]
+                    link = items.find_element_by_class_name('css-klx76');
+                    url = link.get_attribute('href')
+                    dic = {'Label': ticker, 'Name': name, 'URL': url}
+                    df = df.append(dic, ignore_index = True)
+                    i+=1
+#                     print(i)
+                    if i % 3 == 0 :
+                        body.send_keys(Keys.PAGE_DOWN)
+                    driver.implicitly_wait(4)
+                    print(link.get_attribute('href'))
 
-def scrollDown(driver, n_scroll):
-    body = driver.find_element_by_tag_name("body")
-    while n_scroll >= 0:
-        body.send_keys(Keys.PAGE_DOWN)
-        n_scroll -= 1
-    return driver
+                print("Page "+ str(page) +" ---DONE---")
+                page += 1
+            except:
+                print('in except')
+                break
+    
+    return (df)
 
-
-driver = webdriver.Chrome(executable_path = chrome_path)
-
-url = 'https://www.sephora.com'
-driver.get(url)
-
-# initiate empty dataframe
-df = pd.DataFrame(columns=['Label', 'URL'])
-print(df)
-
-# step 1
 tickers = ['moisturizing-cream-oils-mists', 'cleanser', 'facial-treatments', 'face-mask',
            'eye-treatment-dark-circle-treatment', 'sunscreen-sun-protection']
-subpageURL = []
-for ticker in tickers:
-    url = 'https://www.sephora.com/shop/' + ticker + '?pageSize=300'
-    driver.get(url)
-
-    xpath = '/html/body/div[2]/div/div/div/div[2]/main/div/div[2]/div[2]/a'
-    btn = driver.find_element_by_xpath(xpath)
-    btn.click()
-    time.sleep(20)
-
-    browser = scrollDown(driver, 10)
-    time.sleep(10)
-
-    browser = scrollDown(driver, 10)
-    time.sleep(10)
-
-    browser = scrollDown(driver, 10)
-    time.sleep(10)
-
-    browser = scrollDown(driver, 10)
-
-    element = driver.find_elements_by_class_name('css-ix8km1')
-
-    subpageURL.append(driver.find_element_by_xpath('//*[@id="seoCanonicalUrl"]').get_attribute('href'))
-    dic = {'Label': ticker, 'URL': subpageURL}
-    df = df.append(pd.DataFrame(dic), ignore_index = True)
-
-# add columns
-df2 = pd.DataFrame(columns=['brand', 'name', 'price', 'rank', 'skin_type', 'ingredients'])
-df = pd.concat([df, df2], axis = 1)
-
-# step 2
-for i in range(len(df)+1):
-    url = df.URL[i]
-    driver.get(url)
-    time.sleep(5)
-
-    xpath = '/html/body/div[2]/div/div/div/div[2]/main/div/div[2]/div[2]/a'
-    btn = driver.find_element_by_xpath(xpath)
-    btn.click()
-
-    # brand, name, price
-    df.brand[i] = driver.find_element_by_class_name('css-avdj50').text
-    df.name[i] = driver.find_element_by_class_name('css-r4ddnb ').text
-    df.price[i] = driver.find_element_by_class_name('css-5fq4jh ').text
-
-    browser = scrollDown(driver, 1)
-    time.sleep(5)
-    browser = scrollDown(driver, 1)
-    time.sleep(5)
-
-    # skin_type
-    detail = driver.find_element_by_class_name('css-192qj50').text
-    pattern = r"✔ \w+\n"
-    df.skin_type[i] = re.findall(pattern, detail)
-
-    # ingredients
-    xpath = '//*[@id="tab2"]'
-    btn = driver.find_element_by_xpath(xpath)
-    btn.click()
-
-    try:
-        df.ingredients[i] = driver.find_element_by_xpath('//*[@id="tabpanel2"]/div').text
-    except NoSuchElementException:
-        df.ingredients[i] = 'No Info'
-
-    # rank
-    try:
-        rank = driver.find_element_by_class_name('css-ffj77u').text
-        rank = re.match('\d.\d', rank).group()
-        df['rank'][i] = str(rank)
-
-    except NoSuchElementException:
-        df['rank'][i] = 0
-
-    print(i)
-
-
-df.to_csv('data/cosmetic.csv', encoding = 'utf-8-sig', index = False)
+# tickers = ['cleanser']
+df = search_item_url(tickers)
