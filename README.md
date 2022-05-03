@@ -22,3 +22,10 @@ As a first step, we would like to web scrap from Sephora. To focus on the skin c
 In the second step we would like to use content-based recommendation system which is an unsupervised learningto cluster similar items together based on the ingredients in an item. The components of the content based recommender system would include creating Document Term Matrix (DTM). Here each cosmetic product will correspond to a document, and each chemical composition will correspond to a term. This means we can think of the matrix as a “cosmetic-ingredient” matrix.
 
 As a final step we would like to use t-SNE dimensionality reduction technique to two dimensions and create a scatter plot. Each point in this scatter plot would indicate an item. The items having similar ingredients would appear closer to each other when compared to items having different ingredients.
+
+## Data Pre-processing
+# Data cleaning
+Data cleaning is the process of removing the data which is incorrect, wrongly formatted, duplicate data or incomplete dats within the dataset.
+When the data is combined from multiple resources there is lot of duplicate or mislabeled data in combined csv file.
+It removes the data that should not be included in the dataset.
+
