@@ -23,6 +23,17 @@ In the second step we would like to use content-based recommendation system whic
 
 As a final step we would like to use t-SNE dimensionality reduction technique to two dimensions and create a scatter plot. Each point in this scatter plot would indicate an item. The items having similar ingredients would appear closer to each other when compared to items having different ingredients.
 
+# Methods
+
+# Comparisions
+ if we use kaggle dataset
+# example analysis
+
+# Conclusion
+
+#
+
+
 # Data Pre-processing
 ## Data cleaning
 Data cleaning is the process of removing the data which is incorrect, wrongly formatted, duplicate data or incomplete dats within the dataset.
