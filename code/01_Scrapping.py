@@ -110,4 +110,4 @@ def get_item_details(df):
 
 
 df2 = get_item_details(df)
-df2.to_csv('cosmetic.csv', encoding = 'utf-8-sig', index = False)
+df2.to_csv('data/cosmetic.csv', encoding = 'utf-8-sig', index = False)
