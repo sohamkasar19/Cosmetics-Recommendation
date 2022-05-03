@@ -51,3 +51,62 @@ tickers = ['moisturizing-cream-oils-mists', 'cleanser', 'facial-treatments', 'fa
            'eye-treatment-dark-circle-treatment', 'sunscreen-sun-protection']
 # tickers = ['cleanser']
 df = search_item_url(tickers)
+
+
+def get_item_details(df):
+    driver = webdriver.Chrome(ChromeDriverManager().install())
+    df2 = pd.DataFrame(columns=['brand', 'price', 'rank', 'skin_type', 'ingredients'])
+    df = pd.concat([df, df2], axis = 1)
+    for i in range(len(df)):
+        url = df.URL[i]
+        print(url)
+        try:
+            driver.get(url)
+        except:
+            print('driver timeout')
+            continue
+        try:
+            brand = driver.find_element(By.XPATH, '//a[contains(@data-at, "brand_name")]')
+            df['brand'][i]  = brand.text
+        except:
+            df['brand'][i] = 'NA'
+            
+        try:
+            price_div = driver.find_element_by_class_name('css-1oz9qb')
+            price = price_div.find_element(By.XPATH, "//*[@class='css-1oz9qb']")
+            df['price'][i]  = price.text
+        except:
+            df['price'][i] = 'NA'
+        try:
+            rank_ele = driver.find_element(By.XPATH, '//span[contains(@data-comp, "StarRating")]')
+            rank = rank_ele.get_attribute('aria-label')
+            df['rank'][i] = rank
+        except:
+            df['rank'][i] = 'NA';
+        
+        try:
+            skin_type_div = driver.find_element(By.XPATH, '//div[.//b[contains(., "What it is")]]')
+            skin_type_idx = [i for i, item in enumerate(skin_type_div.text.split('\n')) if item.startswith('Skin Type')]
+            skin_type = skin_type_div.text.split('\n')[skin_type_idx[0]]
+            df['skin_type'][i] = skin_type
+        except:
+            df['skin_type'][i] = 'NA'
+            print('Best for not found in first try')
+#             try:
+#                 skin_type_ele = driver.find_element(By.XPATH, "//*[contains(text(), 'Best for')]")
+#                 print(skin_type_ele.text)
+#             except:
+#                 print('Best for not found in second try')
+        try:
+            ingredients_div = driver.find_element(By.XPATH,'//div[contains(@aria-labelledby, "ingredients_heading")]/div')
+            ingredients_idx = [i for i, item in enumerate(ingredients_div.get_attribute("innerText").split('\n')) if re.search('water', item, re.IGNORECASE)]
+            ingredients = ingredients_div.get_attribute("innerText").split('\n')[ingredients_idx[0]]
+            df['ingredients'][i] = ingredients
+        except:
+            df['ingredients'][i] = 'NA'
+            print('Ingredients div not found')
+
+    return df
+
+
+get_item_details(df)
