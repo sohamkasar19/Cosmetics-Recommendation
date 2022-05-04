@@ -1,5 +1,6 @@
 import pandas as pd
 from mlxtend.preprocessing import TransactionEncoder
+import math  
 
 def clean_data(df):
     df.loc[df['Label'] == "moisturizing-cream-oils-mists", 'Label'] = "moisturizer"
@@ -41,8 +42,19 @@ def skin_type_preprocessing(data):
     data.drop('skin_type', axis=1)
     return data
 
+def preprocess_price(data):
+    data['price'].fillna('$0', inplace=True)
+    for idx in data.iterrows():
+        curr = str(data.loc[idx, 'price'])
+        if ' ' in curr:
+            data.loc[idx, 'price'] = int(math.ceil(float(curr.split(' ')[0][1:])))
+        else:
+            data.loc[idx, 'price'] = int(math.ceil(float(curr[1:])))
+    return data
+
 if __name__ == '__main__':
     df = pd.read_csv('data/cosmetic.csv', na_values={'NA', '#NAME?'})
     clean_data(df)
     df = preprocess_ingredients(df)
     df = skin_type_preprocessing(df)
+    df = preprocess_price(df)
