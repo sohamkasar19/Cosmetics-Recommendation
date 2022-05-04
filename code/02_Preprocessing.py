@@ -1,5 +1,5 @@
 import pandas as pd
-from mlxtend.preprocessing import TransactionEncoder
+from sklearn.preprocessing import MultiLabelBinarizer
 import math  
 
 def clean_data(df):
@@ -35,11 +35,8 @@ def skin_type_preprocessing(data):
     data['skin_type'].replace('', data.mode()['skin_type'][0], inplace=True)
     data['skin_type'] = data['skin_type'].str.replace('.', '')
     data.skin_type = data.skin_type.str.split(',')
-    te = TransactionEncoder()
-    te_ary = te.fit(data['skin_type']).transform(data['skin_type'])
-    dfi = pd.DataFrame(te_ary, columns=te.columns_)
-    data = pd.concat([data, dfi], axis=1)
-    data.drop('skin_type', axis=1)
+    mlb = MultiLabelBinarizer(sparse_output=True)
+    data = data.join(pd.DataFrame.sparse.from_spmatrix(mlb.fit_transform(data.pop('skin_type')), index=data.index, columns=mlb.classes_))
     return data
 
 def preprocess_price(data):
