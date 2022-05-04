@@ -1,5 +1,5 @@
 import pandas as pd
-
+from mlxtend.preprocessing import TransactionEncoder
 
 def clean_data(df):
     df.loc[df['Label'] == "moisturizing-cream-oils-mists", 'Label'] = "moisturizer"
@@ -22,8 +22,27 @@ def preprocess_ingredients(df):
                 df['ingredients'][i] = processed_ingredient[i][j]
     return df
 
+def skin_type_preprocessing(data):
+    data['skin_type'].fillna(data.mode()['skin_type'][0], inplace=True)
+    data.isnull().sum()
+    data['skin_type'].unique()
+    data['skin_type'] = data['skin_type'].str.replace('and', ',')
+    data['skin_type'] = data['skin_type'].str.replace(' ', '')
+    data['skin_type'] = data['skin_type'].str.replace(',,', ',')
+    jp = data['skin_type'].str.split(':', n=1, expand=True)
+    data['skin_type'] = jp[1]
+    data['skin_type'].replace('', data.mode()['skin_type'][0], inplace=True)
+    data['skin_type'] = data['skin_type'].str.replace('.', '')
+    data.skin_type = data.skin_type.str.split(',')
+    te = TransactionEncoder()
+    te_ary = te.fit(data['skin_type']).transform(data['skin_type'])
+    dfi = pd.DataFrame(te_ary, columns=te.columns_)
+    data = pd.concat([data, dfi], axis=1)
+    data.drop('skin_type', axis=1)
+    return data
 
 if __name__ == '__main__':
     df = pd.read_csv('data/cosmetic.csv', na_values={'NA', '#NAME?'})
     clean_data(df)
     df = preprocess_ingredients(df)
+    df = skin_type_preprocessing(df)
